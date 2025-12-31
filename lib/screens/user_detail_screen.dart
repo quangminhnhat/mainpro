@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../config/config_url.dart';
-import 'user_schedule_screen.dart';
 
 class UserDetailScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -60,27 +59,6 @@ class UserDetailScreen extends StatelessWidget {
                     backgroundColor: Colors.blue,
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserScheduleScreen(user: user),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.calendar_month),
-                label: const Text("XEM LỊCH TRÌNH NGƯỜI DÙNG"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
               ),
             ),
             const SizedBox(height: 32),

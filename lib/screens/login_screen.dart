@@ -66,15 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'QUANG MINH NHẬT - 2208602215',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
+
                 const SizedBox(height: 24),
                 const Icon(Icons.lock_outline, size: 80, color: Colors.blue),
                 const SizedBox(height: 32),

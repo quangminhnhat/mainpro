@@ -156,6 +156,44 @@ app.use("/api", apiScheduleRoutes);
 app.use("/api", apiUploadMaterialRoutes);
 app.use("/api", apiUsersRoutes);
 
+// API Login Route for Flutter App
+app.post("/api/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    if (!user) {
+      return res.status(401).json({ error: info.message || "Login failed" });
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        return res.status(500).json({ error: "Login failed" });
+      }
+      return res.json({
+        success: true,
+        message: "Login successful",
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          full_name: user.full_name,
+          profile_pic: user.profile_pic
+        }
+      });
+    });
+  })(req, res, next);
+});
+
+app.delete("/api/logout", (req, res) => {
+  req.logOut((err) => {
+    if (err) {
+      return res.status(500).json({ error: "Logout failed" });
+    }
+    res.json({ success: true, message: "Logged out successfully" });
+  });
+});
+
 
 app.post(
   "/login",
@@ -166,63 +204,11 @@ app.post(
     failureFlash: true,
   })
 );
-/*app.post("/login", async (req, res) => {
-  try {
-    sql.query(
-      connectionString,
-      "SELECT * FROM users WHERE username = ?",
-      [req.body.Name],
-      (err, result) => {
-        if (err) {
-          console.error("Query error:", err);
-          return res.status(500).send("Database query error");
-        }
-        if (result.length === 0) {
-          return res.status(401).send("Invalid username or password");
-        }
-
-        const user = result[0];
-        bcrypt.compare(req.body.password, user.password, (err, isMatch) => {
-          if (err) {
-            console.error("Password comparison error:", err);
-            return res.status(500).send("Password comparison error");
-          }
-          if (!isMatch) {
-            res.redirect("/login"); // Redirect to login page if password is incorrect
-          }
-          // Successful login
-          res.redirect("/"); // Redirect to home page after successful login
-        });
-      }
-    );
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).send("An unexpected error occurred");
-  }
-
-
-});*/
-
-
 
 app.get("/login", checkNotAuthenticated, (req, res) => {
   res.render("login.ejs");
 });
 
-
-/*
-link bình thường
-app.get("link ở đây", (req, res) => {
-  res.render("view ở đây ");
-});
-*/
-
-/*
-link role
-app.get("/admin", checkAuthenticated, authenticateRole("admin"), (req, res) => {
-  res.render("admin.ejs", { user: req.user });
-}); 
-*/
 app.delete("/logout", (req, res) => {
   req.logOut((err) => {
     if (err) {
