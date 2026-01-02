@@ -26,7 +26,6 @@ import 'add_edit_schedule_screen.dart';
 import 'user_list_screen.dart';
 import 'course_detail_screen.dart';
 import 'notifications_screen.dart';
-import 'payment_list_screen.dart';
 import 'available_courses_screen.dart';
 import '../services/AuthService.dart';
 import '../services/NotificationService.dart';
@@ -566,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const Padding(padding: EdgeInsets.only(left: 16.0, top: 8.0, bottom: 4.0), child: Text('Admin Tools', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
             ListTile(leading: const Icon(Icons.calendar_today), title: const Text('All Schedules'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const ScheduleListScreen())); }),
             ListTile(leading: const Icon(Icons.book_online), title: const Text('Courses'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const CourseListScreen())); }),
-            ListTile(leading: const Icon(Icons.payments), title: const Text('Payments'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentListScreen())); }),
+            ListTile(leading: const Icon(Icons.app_registration), title: const Text('Enrollments'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const EnrollmentListScreen())); }),
             ListTile(leading: const Icon(Icons.people), title: const Text('User List'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const UserListScreen())); }),
             ListTile(leading: const Icon(Icons.person_add), title: const Text('Register User'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterScreen())); }),
           ],
