@@ -3,7 +3,6 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import '../services/ExamService.dart';
 import '../services/AuthService.dart';
 
 class AddEditQuestionScreen extends StatefulWidget {
@@ -16,7 +15,6 @@ class AddEditQuestionScreen extends StatefulWidget {
 }
 
 class _AddEditQuestionScreenState extends State<AddEditQuestionScreen> {
-  final ExamService _examService = ExamService();
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _textController = TextEditingController();

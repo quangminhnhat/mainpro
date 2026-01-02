@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import '../services/ExamService.dart';
 
 class TakeExamScreen extends StatefulWidget {
@@ -85,14 +84,6 @@ class _TakeExamScreenState extends State<TakeExamScreen> {
     return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _pickFiles(String questionId) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(allowMultiple: true);
-    if (result != null) {
-      setState(() {
-        _uploadedFiles[questionId] = result.paths.map((path) => File(path!)).toList();
-      });
-    }
-  }
 
   Future<void> _submitExam({bool isAutoSubmit = false}) async {
     if (_isSubmitting) return;

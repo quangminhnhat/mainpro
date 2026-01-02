@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/AuthService.dart';
 
 class NewsScreen extends StatefulWidget {
   const NewsScreen({super.key});

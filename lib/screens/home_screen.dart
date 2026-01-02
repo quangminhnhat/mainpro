@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_swiper_null_safety/flutter_swiper_null_safety.dart';
@@ -11,18 +10,12 @@ import 'class_list_screen.dart';
 import 'course_list_screen.dart';
 import 'my_courses_screen.dart';
 import 'register_screen.dart';
-import 'add_edit_course_screen.dart';
-import 'add_edit_class_screen.dart';
 import 'enrollment_list_screen.dart';
-import 'add_edit_enrollment_screen.dart';
 import 'exam_list_screen.dart';
 import 'material_list_screen.dart';
-import 'upload_material_screen.dart';
 import 'request_list_screen.dart';
-import 'add_edit_request_screen.dart';
 import 'weekly_schedule_screen.dart';
 import 'schedule_list_screen.dart';
-import 'add_edit_schedule_screen.dart';
 import 'user_list_screen.dart';
 import 'course_detail_screen.dart';
 import 'notifications_screen.dart';
@@ -179,7 +172,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final bool canManageClasses = isAdmin || isTeacher;
 
     String avatarUrl = _getImageUrl(_userData?['profile_pic']);
-    String base = Config_URL.baseUrl.split('/api')[0];
 
     return Scaffold(
       appBar: AppBar(

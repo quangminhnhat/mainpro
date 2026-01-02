@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../services/ScheduleService.dart';
 
 class WeeklyScheduleScreen extends StatefulWidget {
@@ -12,7 +11,6 @@ class WeeklyScheduleScreen extends StatefulWidget {
 class _WeeklyScheduleScreenState extends State<WeeklyScheduleScreen> {
   final ScheduleService _scheduleService = ScheduleService();
   bool _isLoading = true;
-  String? _currentWeekStart;
   String? _prevWeekStart;
   String? _nextWeekStart;
   List<dynamic> _days = [];
@@ -32,7 +30,6 @@ class _WeeklyScheduleScreenState extends State<WeeklyScheduleScreen> {
         setState(() {
           _days = result['days'];
           _scheduleData = result['scheduleData'];
-          _currentWeekStart = result['weekStart'];
           _prevWeekStart = result['prevWeekStart'];
           _nextWeekStart = result['nextWeekStart'];
           _isLoading = false;

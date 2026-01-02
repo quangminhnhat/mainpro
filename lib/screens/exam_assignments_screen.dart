@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/ExamService.dart';
-import '../services/ClassService.dart';
 import 'exam_scores_screen.dart';
 
 class ExamAssignmentsScreen extends StatefulWidget {
@@ -14,8 +13,7 @@ class ExamAssignmentsScreen extends StatefulWidget {
 
 class _ExamAssignmentsScreenState extends State<ExamAssignmentsScreen> {
   final ExamService _examService = ExamService();
-  final ClassService _classService = ClassService();
-  
+
   Map<String, dynamic>? _exam;
   List<dynamic> _assignments = [];
   List<dynamic> _availableClasses = [];

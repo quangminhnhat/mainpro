@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../services/CourseService.dart';
 import '../config/config_url.dart';
 import 'add_edit_course_screen.dart';
