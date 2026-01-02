@@ -56,7 +56,7 @@ router.post(
 
       await executeQuery(insertQuery, values);
 
-      res.redirect("/materials");
+      res.json({ success: true, message: "Material uploaded successfully" });
     } catch (error) {
       console.error("Material upload error:", error);
 

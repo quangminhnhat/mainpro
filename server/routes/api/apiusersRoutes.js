@@ -37,9 +37,6 @@ router.get(
       FROM users u
       ORDER BY u.created_at DESC;
     `;
-      // The original query with multiple LEFT JOINs and COALESCE is complex and
-      // has been simplified since the 'users' table now contains all personal info.
-      // If you still need the old structure, you can revert the query string.
       const users = await executeQuery(query);
       res.json({ users: users, user: req.user });
     } catch (error) {
@@ -53,7 +50,7 @@ router.get("/users/:id/edit", checkAuthenticated, async (req, res) => {
   try {
     const userId = req.params.id;
     const query = `
-          SELECT u.id, u.username, u.role, u.full_name, u.email, u.phone_number, u.profile_pic, t.salary
+          SELECT u.id, u.username, u.role, u.full_name, u.email, u.phone_number, u.profile_pic, t.salary, u.address, CONVERT(varchar(10), u.date_of_birth, 23) as date_of_birth
           FROM users u
           LEFT JOIN teachers t ON u.id = t.user_id
           WHERE u.id = ?
@@ -91,35 +88,32 @@ router.post(
       email,
       phone_number,
       salary,
-      profile_pic,
+      address,
+      date_of_birth,
     } = req.body;
     const userId = req.params.id;
-    let connection; // Define connection here to be accessible in catch/finally
+    let connection;
 
     try {
-      // 1. Get a dedicated connection for the transaction
       connection = await sql.promises.open(connectionString);
-
-      // Start a transaction
       await connection.promises.beginTransaction();
 
-      // 2. Get the current role of the user being edited
       const roleResult = await connection.promises.query(
         "SELECT role, profile_pic FROM users WHERE id = ?",
         [userId]
       );
-      const currentUserData = roleResult.first[0];
-      const oldRole = currentUserData?.role;
-
-      if (!oldRole) {
+      
+      if (!roleResult.first || roleResult.first.length === 0) {
         await connection.promises.rollback();
         return res.status(404).json({ error: "User not found." });
       }
+      
+      const currentUserData = roleResult.first[0];
+      const oldRole = currentUserData?.role;
 
       let newProfilePicPath = currentUserData?.profile_pic;
       if (req.file) {
-        newProfilePicPath = req.file.path;
-        // If there was an old picture, delete it
+        newProfilePicPath = req.file.path.replace(/\\/g, '/'); // Use forward slashes for consistency
         const oldPicPath = currentUserData?.profile_pic;
         if (oldPicPath && fs.existsSync(oldPicPath)) {
           fs.unlink(oldPicPath, (err) => {
@@ -128,12 +122,13 @@ router.post(
         }
       }
 
-      // 3. Dynamically build and execute the update query for the 'users' table
       let updateQueryParts = [
         "username = ?",
         "full_name = ?",
         "email = ?",
         "phone_number = ?",
+        "address = ?",
+        "date_of_birth = ?",
         "profile_pic = ?",
         "updated_at = GETDATE()",
       ];
@@ -142,25 +137,24 @@ router.post(
         full_name || null,
         email || null,
         phone_number || null,
+        address || null,
+        date_of_birth || null,
         newProfilePicPath,
       ];
 
-      // Only add role to the update query if it's provided and different from the old role
       if (role && role !== oldRole) {
         updateQueryParts.push("role = ?");
         queryParams.push(role);
       }
 
-      queryParams.push(userId); // Add the userId for the WHERE clause
+      queryParams.push(userId);
 
       const updateUserQuery = `UPDATE users SET ${updateQueryParts.join(
         ", "
       )} WHERE id = ?`;
       await connection.promises.query(updateUserQuery, queryParams);
       
-      // 4. Handle role-specific table changes if the role was modified
       if (role && oldRole !== role) {
-        // ** NEW: Check for dependencies before changing role **
         if (oldRole === "student") {
           const studentDepsQuery = `
             SELECT s.id 
@@ -174,10 +168,7 @@ router.post(
             return res.status(400).json({ error: "Cannot change role. This student is enrolled in one or more classes. Please unenroll them first." });
           }
         }
-        // ** END NEW **
 
-
-        // Delete from all old role-specific tables to be safe
         await connection.promises.query(
           "DELETE FROM students WHERE user_id = ?",
           [userId]
@@ -191,7 +182,6 @@ router.post(
           [userId]
         );
 
-        // Insert into the new role-specific table
         if (role === "student") {
           await connection.promises.query(
             "INSERT INTO students (user_id) VALUES (?)",
@@ -209,8 +199,7 @@ router.post(
           );
         }
       } else {
-        // If role is teacher and hasn't changed, just update the salary
-        if (role === "teacher" && salary !== undefined) {
+        if (oldRole === "teacher" && salary !== undefined) {
           await connection.promises.query(
             "UPDATE teachers SET salary = ? WHERE user_id = ?",
             [salary, userId]
@@ -218,29 +207,21 @@ router.post(
         }
       }
 
-      // 5. If all queries succeeded, commit the transaction
       await connection.promises.commit();
 
-      // Return JSON indicating success and intended redirect path
-      if (req.user.role !== "admin") {
+      if (req.user.role !== "admin" || userId == req.user.id) {
         return res.json({ success: true, redirect: "/profile" });
       } else {
         return res.json({ success: true, redirect: "/users" });
       }
     } catch (error) {
       console.error("Error updating user:", error);
-      // If an error occurs and a new file was uploaded, delete it
       if (req.file && fs.existsSync(req.file.path)) {
         fs.unlink(req.file.path, (err) => {
-          if (err)
-            console.error(
-              "Error deleting uploaded file after failed update:",
-              err
-            );
+          if (err) console.error("Error deleting uploaded file after failed update:", err);
         });
       }
       if (connection) {
-        console.log("Attempting to rollback transaction...");
         await connection.promises.rollback();
       }
       res.status(500).json({ error: "An unexpected error occurred.", detail: String(error) });
@@ -260,7 +241,6 @@ router.delete(
     const userIdToDelete = req.params.id;
     const adminUserId = req.user.id;
 
-    // Prevent an admin from deleting themselves
     if (userIdToDelete == adminUserId) {
       return res.status(400).json({ error: "You cannot delete your own account." });
     }
@@ -270,7 +250,6 @@ router.delete(
       connection = await sql.promises.open(connectionString);
       await connection.promises.beginTransaction();
 
-      // Get user role to check for dependencies
       const userResult = await connection.promises.query(
         "SELECT role FROM users WHERE id = ?",
         [userIdToDelete]
@@ -281,7 +260,6 @@ router.delete(
       }
       const userRole = userResult.first[0].role;
 
-      // Check for dependencies based on role
       if (userRole === "student") {
         const studentDeps = await connection.promises.query(
           `
@@ -310,7 +288,6 @@ router.delete(
         }
       }
 
-      // If no dependencies, proceed with deletion
       await connection.promises.query("DELETE FROM users WHERE id = ?", [
         userIdToDelete,
       ]);
@@ -331,9 +308,8 @@ router.get("/profile", checkAuthenticated, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // The user's details are all in the 'users' table now.
     const query = `
-      SELECT username, role, full_name, email, phone_number, address, profile_pic, CONVERT(varchar(10), date_of_birth, 23) as date_of_birth, created_at, updated_at
+      SELECT id, username, role, full_name, email, phone_number, address, profile_pic, CONVERT(varchar(10), date_of_birth, 23) as date_of_birth, created_at, updated_at
       FROM users
       WHERE id = ?
     `;
@@ -355,4 +331,3 @@ router.get("/profile", checkAuthenticated, async (req, res) => {
 });
 
 module.exports = router;
-

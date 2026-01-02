@@ -1293,27 +1293,21 @@ router.post('/exams/submit/:attemptId', checkAuthenticated, authenticateRole(['s
             const response = responses[questionId];
 
             if (question.type_code === 'MCQ') {
-                // For MCQ questions, get correct answer and check
-                const optionsQuery = `SELECT * FROM MCQOptions WHERE question_id = ${question.question_id}`;
-                const options = await executeQuery(optionsQuery);
-                const correctOption = options.find(opt => opt.is_correct);
-                const isCorrect = response.selectedOptionId === correctOption.option_id;
+                // Find existing OptionInstance for this attempt and option
+                const optionInstanceQuery = `
+                    SELECT option_instance_id, is_correct_snapshot
+                    FROM OptionInstances
+                    WHERE attempt_id = ${attemptId} AND option_id = ${response.selectedOptionId}`;
+                const [optionInstance] = await executeQuery(optionInstanceQuery);
 
-                // Create option instance
-                const optionInstance = await executeQuery(`
-                    INSERT INTO OptionInstances (attempt_id, question_id, option_id, display_order, display_label, option_text_snapshot, is_correct_snapshot)
-                    OUTPUT INSERTED.option_instance_id
-                    VALUES (${attemptId}, ${question.question_id}, ${response.selectedOptionId}, 1, 'A', 
-                    N'${options.find(opt => opt.option_id === response.selectedOptionId).option_text}', 
-                    ${isCorrect ? 1 : 0})`);
+                if (optionInstance) {
+                    const score = optionInstance.is_correct_snapshot ? question.points : 0;
+                    totalScore += score;
 
-                // Record response with score
-                const score = isCorrect ? question.points : 0;
-                totalScore += score;
-
-                await executeQuery(`
-                    INSERT INTO Responses (attempt_id, question_id, chosen_option_instance_id, score_awarded, answered_at)
-                    VALUES (${attemptId}, ${question.question_id}, ${optionInstance[0].option_instance_id}, ${score}, GETDATE())`);
+                    await executeQuery(`
+                        INSERT INTO Responses (attempt_id, question_id, chosen_option_instance_id, score_awarded, answered_at)
+                        VALUES (${attemptId}, ${question.question_id}, ${optionInstance.option_instance_id}, ${score}, GETDATE())`);
+                }
 
             } else if (question.type_code === 'ESSAY') {
                 hasEssayQuestion = true;
@@ -1340,7 +1334,7 @@ router.post('/exams/submit/:attemptId', checkAuthenticated, authenticateRole(['s
         // Update attempt status and score
         const status = hasEssayQuestion ? 'needs_grading' : 'graded';
         await executeQuery(`
-            UPDATE Attempts 
+            UPDATE Attempts
             SET submitted_at = GETDATE(),
                 auto_score = ${totalScore},
                 status = '${status}'
@@ -1348,7 +1342,7 @@ router.post('/exams/submit/:attemptId', checkAuthenticated, authenticateRole(['s
 
         res.json({
             success: true,
-            message: hasEssayQuestion ? 
+            message: hasEssayQuestion ?
                 "Exam submitted successfully. Essay questions will be graded by your teacher." :
                 "Exam submitted and graded successfully.",
             score: hasEssayQuestion ? null : totalScore
@@ -1370,11 +1364,11 @@ router.post('/exams/submit/:attemptId', checkAuthenticated, authenticateRole(['s
 router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['student']), async (req, res) => {
     try {
         const { assignmentId } = req.params;
-        
+
         // Get student ID
         const studentQuery = `SELECT id FROM students WHERE user_id = ${req.user.id}`;
         const student = await executeQuery(studentQuery);
-        
+
         if (!student || student.length === 0) {
             return res.status(403).json({ error: 'Student not found' });
         }
@@ -1382,8 +1376,8 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
         // Check if exam is available and student can take it
         const examQuery = `
             SELECT ea.*, e.*, t.user_id as teacher_user_id,
-                   (SELECT COUNT(*) FROM Attempts 
-                    WHERE assignment_id = ea.assignment_id 
+                   (SELECT COUNT(*) FROM Attempts
+                    WHERE assignment_id = ea.assignment_id
                     AND student_id = ${student[0].id}) as attempt_count
             FROM ExamAssignments ea
             JOIN Exams e ON ea.exam_id = e.exam_id
@@ -1392,9 +1386,9 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
             WHERE ea.assignment_id = ${assignmentId}
             AND en.student_id = ${student[0].id}
         `;
-        
+
         const exam = await executeQuery(examQuery);
-        
+
         if (!exam || exam.length === 0) {
             return res.status(404).json({ error: 'Exam not found' });
         }
@@ -1403,11 +1397,11 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
         const now = new Date();
         const openAt = new Date(exam[0].open_at);
         const closeAt = new Date(exam[0].close_at);
-        
+
         if (now < openAt) {
             return res.status(400).json({ error: 'Exam is not yet open' });
         }
-        
+
         if (now > closeAt) {
             return res.status(400).json({ error: 'Exam has closed' });
         }
@@ -1420,23 +1414,24 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
         // Check for existing in-progress attempt
         const inProgressQuery = `
             SELECT attempt_id, started_at, DATEADD(minute, ${exam[0].duration_min}, started_at) as end_time
-            FROM Attempts 
+            FROM Attempts
             WHERE assignment_id = ${assignmentId}
             AND student_id = ${student[0].id}
             AND status = 'in_progress'
         `;
-        
+
         const inProgress = await executeQuery(inProgressQuery);
         let attemptId;
-        
+        let isNewAttempt = false;
+
         if (inProgress && inProgress.length > 0) {
             // Resume existing attempt
             attemptId = inProgress[0].attempt_id;
-            
+
             // Calculate remaining time
             const endTime = new Date(inProgress[0].end_time);
             const remainingTime = Math.max(0, Math.floor((endTime - now) / 1000));
-            
+
             if (remainingTime <= 0) {
                 // Auto-submit if time has expired
                 await executeQuery(`
@@ -1445,10 +1440,10 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
                         submitted_at = GETDATE()
                     WHERE attempt_id = ${attemptId}
                 `);
-                
+
                 return res.json({ message: 'Your attempt has expired and been automatically submitted' });
             }
-            
+
             exam[0].remaining_time = remainingTime;
         } else {
             // Create new attempt
@@ -1469,27 +1464,73 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
                     'in_progress'
                 )
             `;
-            
+
             const newAttempt = await executeQuery(newAttemptQuery);
             attemptId = newAttempt[0].attempt_id;
             exam[0].remaining_time = exam[0].duration_min * 60; // Convert to seconds
+            isNewAttempt = true;
         }
 
-        // Get questions
+        // If it's a new attempt, generate OptionInstances for MCQ questions
+        if (isNewAttempt) {
+            const mcqQuestionsQuery = `
+                SELECT q.question_id, q.type_id, qt.type_code
+                FROM Questions q
+                JOIN QuestionTypes qt ON q.type_id = qt.type_id
+                WHERE q.exam_id = ${exam[0].exam_id} AND qt.type_code = 'MCQ'
+            `;
+            const mcqQuestions = await executeQuery(mcqQuestionsQuery);
+
+            for (const question of mcqQuestions) {
+                const optionsQuery = `SELECT * FROM MCQOptions WHERE question_id = ${question.question_id}`;
+                let options = await executeQuery(optionsQuery);
+
+                if (exam[0].shuffle_options) {
+                    options.sort(() => Math.random() - 0.5);
+                }
+
+                for (let i = 0; i < options.length; i++) {
+                    const option = options[i];
+                    await executeQuery(`
+                        INSERT INTO OptionInstances (
+                            attempt_id,
+                            question_id,
+                            option_id,
+                            display_order,
+                            display_label,
+                            option_text_snapshot,
+                            is_correct_snapshot
+                        )
+                        VALUES (
+                            ${attemptId},
+                            ${question.question_id},
+                            ${option.option_id},
+                            ${i + 1},
+                            '${String.fromCharCode(65 + i)}',
+                            N'${option.option_text.replace(/'/g, "''")}',
+                            ${option.is_correct ? 1 : 0}
+                        )
+                    `);
+                }
+            }
+        }
+
+        // Get questions with ONLY the OptionInstances for this SPECIFIC attempt
         const questionsQuery = `
             SELECT q.*, qt.type_code, qt.type_name,
                    (SELECT JSON_QUERY((
                      SELECT mo.option_id, mo.option_text,
                             oi.option_instance_id, oi.display_label, oi.option_text_snapshot, oi.is_correct_snapshot
-                     FROM MCQOptions mo 
-                     LEFT JOIN OptionInstances oi ON mo.option_id = oi.option_id
-                     WHERE mo.question_id = q.question_id 
+                     FROM MCQOptions mo
+                     LEFT JOIN OptionInstances oi ON mo.option_id = oi.option_id AND oi.attempt_id = ${attemptId}
+                     WHERE mo.question_id = q.question_id
+                     ORDER BY oi.display_order
                      FOR JSON PATH
                    ))) as options,
                    (SELECT JSON_QUERY((
-                     SELECT qm.* 
-                     FROM QuestionMedia qm 
-                     WHERE qm.question_id = q.question_id 
+                     SELECT qm.*
+                     FROM QuestionMedia qm
+                     WHERE qm.question_id = q.question_id
                      FOR JSON PATH
                    ))) as media
             FROM Questions q
@@ -1497,9 +1538,9 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
             WHERE q.exam_id = ${exam[0].exam_id}
             ORDER BY ${exam[0].shuffle_questions ? 'NEWID()' : 'q.created_at'}
         `;
-        
+
         const questions = await executeQuery(questionsQuery);
-        
+
         // Parse JSON strings from SQL
         // Process each question
         questions.forEach(q => {
@@ -1519,27 +1560,6 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
                     console.error('Error parsing media for question', q.question_id, ':', parseError);
                     console.error('Raw media string:', q.media);
                     q.media = [];
-                }
-
-                // Debug output after parsing
-                if (q.type_code === 'MCQ') {
-                    console.log('Debug: Processed MCQ options for question', q.question_id, ':');
-                    console.log(JSON.stringify(q.options, null, 2));
-                    
-                    // Verify required fields
-                    q.options.forEach((opt, idx) => {
-                        if (!opt.option_text && !opt.option_text_snapshot) {
-                            console.warn(`Warning: Option ${idx} for question ${q.question_id} is missing text`);
-                        }
-                        if (!opt.display_label) {
-                            console.warn(`Warning: Option ${idx} for question ${q.question_id} is missing display_label`);
-                        }
-                    });
-                }
-
-                // Shuffle options if enabled
-                if (exam[0].shuffle_options && Array.isArray(q.options)) {
-                    q.options.sort(() => Math.random() - 0.5);
                 }
             } catch (error) {
                 console.error('Error processing question', q.question_id, ':', error);

@@ -449,6 +449,7 @@ router.get(
           c.start_date,
           c.end_date,
           c.tuition_fee,
+          c.image_path,
           cls.id as class_id,
           cls.class_name,
           cls.start_time,
@@ -497,6 +498,10 @@ router.post(
   async (req, res) => {
     try {
       const { class_id } = req.body;
+
+      if (!class_id || class_id === "null") {
+        return res.status(400).json({ error: "Invalid class selection" });
+      }
 
       // Get student ID
       const studentQuery = "SELECT id FROM students WHERE user_id = ?";
@@ -668,4 +673,3 @@ router.get("/my-courses", checkAuthenticated, async (req, res) => {
 });
 
 module.exports = router;
-

@@ -546,12 +546,12 @@ router.get("/schedule", checkAuthenticated, (req, res) => {
       });
       
   
-      res.render("schedule", {
+      res.render("Schedule/schedule", {
         user: req.user,
         days,
         scheduleData,
-        courseStart, 
-        courseEnd, 
+        courseStart,
+        courseEnd,
         weekStart: days[0].iso,
         prevWeekStart: new Date(new Date(monday).setDate(monday.getDate() - 7))
           .toISOString()

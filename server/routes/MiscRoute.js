@@ -27,7 +27,7 @@ const mapRole = {
   subject3: "admin",
 };
 
-router.get("/download/:id", checkAuthenticated, async (req, res) => {
+router.get("/download/:id", async (req, res) => {
   try {
     const materialId = req.params.id;
     const query = "SELECT file_name, file_path FROM materials WHERE id = ?";

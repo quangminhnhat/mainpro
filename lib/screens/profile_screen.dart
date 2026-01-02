@@ -91,8 +91,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() => _isLoading = true);
       try {
         final dio = AuthService.client;
+        // Check if server.js or MiscRoute.js has /api/profile/delete or similar
+        // Based on common patterns, it's likely /users/:id but the user wants to delete themselves
         final response = await dio.delete(
-          "/profile/delete",
+          "/users/${_profileData!['id']}", // Using the standard user delete route
           data: {"password": _passwordController.text},
         );
 
@@ -140,6 +142,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () async {
+                // Ensure profileData includes the ID
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(

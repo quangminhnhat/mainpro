@@ -23,8 +23,6 @@ const validateSchedule = require("../../middleware/validateSchedule");
 
 const router = express.Router();
 
-// Add these new routes before the existing POST/PUT/DELETE routes
-
 // Render request list page
 router.get(
   "/requests",
@@ -38,7 +36,7 @@ router.get(
       let requestQuery = `
         SELECT r.request_id, r.description, r.status, r.created_at,
                rt.type_name, c.class_name, u.username, u.full_name, u.role,
-               r.class_id
+               r.class_id, r.user_id
         FROM Requests r
         JOIN RequestTypes rt ON r.type_id = rt.type_id
         JOIN users u ON r.user_id = u.id
@@ -200,7 +198,8 @@ router.post(
   checkAuthenticated,
   authenticateRole(["student", "teacher"]),
   async (req, res) => {
-    const { userId, requestType, details, classId } = req.body;
+    const { requestType, details, classId } = req.body;
+    const userId = req.user.id; // Use authenticated user ID instead of body
     const senderRole = req.user.role;
 
     try {
@@ -219,21 +218,21 @@ router.post(
 
       // Insert the request
       const insertQuery = `
-        INSERT INTO Requests (user_id, type_id, class_id, description, status)
-        VALUES (@userId, @typeId, @classId, @details, 'pending')
+        INSERT INTO Requests (user_id, type_id, class_id, description, status, created_at, updated_at)
+        VALUES (@userId, @typeId, @classId, @details, 'pending', GETDATE(), GETDATE())
       `;
 
       await executeQuery(insertQuery, {
         userId: userId,
         typeId: typeId,
-        classId: classId,
+        classId: classId || null,
         details: details
       });
 
       // If it's a class-related request, notify relevant users
       if (classId) {
         const notifyQuery = `
-          INSERT INTO notifications (user_id, message, sender_id)
+          INSERT INTO notifications (user_id, message, sender_id, sent_at, created_at, updated_at)
           SELECT 
             CASE 
               WHEN u.role = 'teacher' THEN (SELECT TOP 1 user_id FROM admins)
@@ -242,7 +241,8 @@ router.post(
                     WHERE c.id = @classId)
             END,
             @message,
-            @senderId
+            @senderId,
+            GETDATE(), GETDATE(), GETDATE()
           FROM users u WHERE u.id = @userId
         `;
 
@@ -497,8 +497,8 @@ router.put(
 
       // Notify the request creator
       const notifyQuery = `
-        INSERT INTO notifications (user_id, message, sender_id)
-        VALUES (@userId, @message, @actionUserId)
+        INSERT INTO notifications (user_id, message, sender_id, sent_at, created_at, updated_at)
+        VALUES (@userId, @message, @actionUserId, GETDATE(), GETDATE(), GETDATE())
       `;
 
       await executeQuery(notifyQuery, {
@@ -510,8 +510,8 @@ router.put(
       // If it's a teacher's request and it was approved, notify affected students
       if (request.role === 'teacher' && newStatus === 'approved' && request.class_id) {
         const notifyStudentsQuery = `
-          INSERT INTO notifications (user_id, message, sender_id)
-          SELECT s.user_id, @message, @actionUserId
+          INSERT INTO notifications (user_id, message, sender_id, sent_at, created_at, updated_at)
+          SELECT s.user_id, @message, @actionUserId, GETDATE(), GETDATE(), GETDATE()
           FROM students s
           JOIN enrollments e ON s.id = e.student_id
           WHERE e.class_id = @classId
@@ -539,4 +539,3 @@ router.put(
 );
 
 module.exports = router;
-

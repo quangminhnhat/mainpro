@@ -38,8 +38,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     }
   }
 
-  void _enroll(String classId) async {
-    final result = await _courseService.enrollCourse(classId);
+  void _enroll(int classId) async {
+    final result = await _courseService.enrollCourse(classId.toString());
     if (mounted) {
       if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -78,6 +78,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                       itemBuilder: (context, index) {
                         final course = _courses[index];
                         final String imgUrl = _getImageUrl(course['image_path']);
+                        // Use class_id instead of id if the server provides it
+                        final int classId = course['class_id'] ?? course['id'];
 
                         return Card(
                           margin: const EdgeInsets.all(12),
@@ -134,7 +136,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
                                         ),
                                         ElevatedButton(
-                                          onPressed: () => _enroll(course['id'].toString()),
+                                          onPressed: () => _enroll(classId),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.blue,
                                             foregroundColor: Colors.white,

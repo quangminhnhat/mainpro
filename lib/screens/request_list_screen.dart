@@ -89,7 +89,6 @@ class _RequestListScreenState extends State<RequestListScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isStudentOrTeacher = _userRole == 'student' || _userRole == 'teacher';
-    final bool isAdminOrTeacher = _userRole == 'admin' || _userRole == 'teacher';
 
     return Scaffold(
       appBar: AppBar(
@@ -125,6 +124,7 @@ class _RequestListScreenState extends State<RequestListScreen> {
                         final String status = r['status'] ?? 'pending';
                         final bool isPending = status == 'pending';
                         final bool isOwner = r['user_id'] == _userId;
+                        final bool canManage = _userRole == 'admin' || (_userRole == 'teacher' && r['role'] == 'student');
 
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -187,15 +187,45 @@ class _RequestListScreenState extends State<RequestListScreen> {
                                             onPressed: () => _deleteRequest(r['request_id'].toString()),
                                           ),
                                         ],
-                                        if (isAdminOrTeacher && !isOwner)
-                                          ElevatedButton(
-                                            onPressed: () => _toggleStatus(r['request_id'].toString()),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: status == 'approved' ? Colors.orange : Colors.green,
-                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                        if (canManage) ...[
+                                          if (status == 'pending') ...[
+                                            ElevatedButton(
+                                              onPressed: () => _toggleStatus(r['request_id'].toString()),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.green,
+                                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              ),
+                                              child: const Text('Approve', style: TextStyle(fontSize: 12, color: Colors.white)),
                                             ),
-                                            child: Text(status == 'approved' ? 'Reject' : 'Approve', style: const TextStyle(fontSize: 12)),
-                                          ),
+                                            const SizedBox(width: 4),
+                                            ElevatedButton(
+                                              onPressed: () => _toggleStatus(r['request_id'].toString()),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.red,
+                                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              ),
+                                              child: const Text('Reject', style: TextStyle(fontSize: 12, color: Colors.white)),
+                                            ),
+                                          ] else if (status == 'approved') ...[
+                                            ElevatedButton(
+                                              onPressed: () => _toggleStatus(r['request_id'].toString()),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.red,
+                                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              ),
+                                              child: const Text('Reject', style: TextStyle(fontSize: 12, color: Colors.white)),
+                                            ),
+                                          ] else if (status == 'rejected') ...[
+                                            ElevatedButton(
+                                              onPressed: () => _toggleStatus(r['request_id'].toString()),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.green,
+                                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              ),
+                                              child: const Text('Approve', style: TextStyle(fontSize: 12, color: Colors.white)),
+                                            ),
+                                          ],
+                                        ],
                                       ],
                                     ),
                                   ],

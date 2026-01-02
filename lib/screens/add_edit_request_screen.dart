@@ -40,8 +40,8 @@ class _AddEditRequestScreenState extends State<AddEditRequestScreen> {
     if (mounted) {
       if (result['success']) {
         setState(() {
-          _requestTypes = result['requestTypes'];
-          _classes = result['classes'];
+          _requestTypes = result['requestTypes'] ?? [];
+          _classes = result['classes'] ?? [];
           if (widget.requestId != null && result['request'] != null) {
             final r = result['request'];
             _detailsController.text = r['description'] ?? '';
