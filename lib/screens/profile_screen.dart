@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/AuthService.dart';
 import '../config/config_url.dart';
 import 'edit_profile_screen.dart';
-import 'login_screen.dart';
-import 'package:dio/dio.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,18 +13,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _profileData;
   bool _isLoading = true;
-  final TextEditingController _passwordController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _fetchProfile();
-  }
-
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    super.dispose();
   }
 
   Future<void> _fetchProfile() async {
@@ -47,89 +38,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _deleteProfile() async {
-    _passwordController.clear();
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Xóa tài khoản'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Hành động này không thể hoàn tác. Vui lòng nhập mật khẩu để xác nhận xóa tài khoản của bạn:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Mật khẩu',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-            child: const Text('Xóa vĩnh viễn'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      if (_passwordController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng nhập mật khẩu')));
-        return;
-      }
-
-      setState(() => _isLoading = true);
-      try {
-        final dio = AuthService.client;
-        // Check if server.js or MiscRoute.js has /api/profile/delete or similar
-        // Based on common patterns, it's likely /users/:id but the user wants to delete themselves
-        final response = await dio.delete(
-          "/users/${_profileData!['id']}", // Using the standard user delete route
-          data: {"password": _passwordController.text},
-        );
-
-        if (response.statusCode == 200) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Tài khoản của bạn đã được xóa thành công')),
-            );
-            // Navigate back to login
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (route) => false,
-            );
-          }
-        }
-      } on DioException catch (e) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.response?.data['error'] ?? 'Xác nhận mật khẩu thất bại')),
-          );
-        }
-      }
+  String _getImageUrl(String? imgPath) {
+    if (imgPath == null || imgPath.isEmpty) {
+      return "";
     }
+    // Clean up path separators for URLs
+    imgPath = imgPath.replaceAll('\\\\', '/').replaceAll('\\', '/');
+    if (imgPath.startsWith('http')) return imgPath;
+    
+    // Remove leading 'api/' if present in the path stored in DB
+    if (imgPath.startsWith('api/')) {
+      imgPath = imgPath.substring(4);
+    } else if (imgPath.startsWith('/api/')) {
+      imgPath = imgPath.substring(5);
+    }
+    
+    // Get base URL without /api suffix
+    String base = Config_URL.baseUrl;
+    if (base.contains('/api')) {
+      base = base.split('/api')[0];
+    }
+    
+    if (imgPath.startsWith('/')) {
+      return "$base$imgPath";
+    }
+    return "$base/$imgPath";
   }
 
   @override
   Widget build(BuildContext context) {
-    String? serverPic = _profileData?['profile_pic'];
-    String? imageUrl;
-    if (serverPic != null && serverPic.isNotEmpty) {
-      String base = Config_URL.baseUrl.replaceAll('/api/', '');
-      imageUrl = "$base/$serverPic";
-    }
+    String imageUrl = _getImageUrl(_profileData?['profile_pic']);
 
     return Scaffold(
       appBar: AppBar(
@@ -142,7 +80,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () async {
-                // Ensure profileData includes the ID
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -178,8 +115,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             CircleAvatar(
                               radius: 60,
                               backgroundColor: Colors.white,
-                              backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
-                              child: imageUrl == null
+                              backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                              child: imageUrl.isEmpty
                                   ? const Icon(Icons.person, size: 80, color: Colors.blue)
                                   : null,
                             ),
@@ -239,22 +176,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _buildInfoTile(Icons.phone_outlined, "Số điện thoại", _profileData!['phone_number'] ?? "Chưa cập nhật"),
                             _buildInfoTile(Icons.location_on_outlined, "Địa chỉ", _profileData!['address'] ?? "Chưa cập nhật"),
                             _buildInfoTile(Icons.cake_outlined, "Ngày sinh", _profileData!['date_of_birth'] ?? "Chưa cập nhật"),
-                            
-                            const SizedBox(height: 30),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: _deleteProfile,
-                                icon: const Icon(Icons.delete_forever),
-                                label: const Text("XÓA TÀI KHOẢN"),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                  side: const BorderSide(color: Colors.red),
-                                  padding: const EdgeInsets.symmetric(vertical: 15),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                              ),
-                            ),
                             const SizedBox(height: 20),
                           ],
                         ),
@@ -265,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String label, String value) {
+  Widget _buildInfoTile(IconData icon, String label, String? value) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(15),
@@ -284,7 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
                 const SizedBox(height: 2),
                 Text(
-                  value,
+                  value ?? "N/A",
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ],

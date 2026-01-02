@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/auth.dart';
-import 'register_screen.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -66,7 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-
                 const SizedBox(height: 24),
                 const Icon(Icons.lock_outline, size: 80, color: Colors.blue),
                 const SizedBox(height: 32),
@@ -103,16 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: const Text('Đăng nhập', style: TextStyle(fontSize: 16)),
                       ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                    );
-                  },
-                  child: const Text('Chưa có tài khoản? Đăng ký ngay'),
-                ),
               ],
             ),
           ),
