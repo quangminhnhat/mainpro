@@ -177,9 +177,9 @@ app.use(miscroutes);
 app.use(requestRoute);
 app.use(examRoutes);
 
-// Swagger UI
-app.use('/api', swaggerUi.serve);
-app.get('/api', swaggerUi.setup(swaggerSpec));
+// Swagger UI - MOVED TO /api-docs to avoid conflict with /api routes
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerSpec));
 
 //api routing
 app.use("/api", apiClassesRoutes);
