@@ -9,6 +9,25 @@ const executeQuery = require("../../middleware/executeQuery");
 const { checkAuthenticated } = require("../../middleware/auth");
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/course-detail/{id}:
+ *   get:
+ *     summary: Get course details by ID
+ *     tags: [Courses]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Course ID
+ *     responses:
+ *       200:
+ *         description: Course details
+ *       404:
+ *         description: Course not found
+ */
 router.get("/course-detail/:id", async (req, res) => {
   try {
     const courseId = req.params.id;
@@ -34,6 +53,27 @@ router.get("/course-detail/:id", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/courses/new:
+ *   get:
+ *     summary: Get data for new course form
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Form data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/courses/new",
   checkAuthenticated,
@@ -43,6 +83,29 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/courses/{id}:
+ *   delete:
+ *     summary: Delete course by ID
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Course ID
+ *     responses:
+ *       200:
+ *         description: Course deleted successfully
+ *       400:
+ *         description: Cannot delete course with dependencies
+ *       500:
+ *         description: Deletion error
+ */
 router.delete(
   "/courses/:id",
   checkAuthenticated,
@@ -87,6 +150,38 @@ router.delete(
   }
 );
 
+/**
+ * @swagger
+ * /api/courses/{id}:
+ *   get:
+ *     summary: Get course details by ID
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Course ID
+ *     responses:
+ *       200:
+ *         description: Course details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 course:
+ *                   type: object
+ *                 user:
+ *                   type: object
+ *       404:
+ *         description: Course not found
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/courses/:id",
   checkAuthenticated,
@@ -177,6 +272,38 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/courses/{id}/edit:
+ *   get:
+ *     summary: Get course edit form data
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Course ID
+ *     responses:
+ *       200:
+ *         description: Course edit data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 course:
+ *                   type: object
+ *                 user:
+ *                   type: object
+ *       404:
+ *         description: Course not found
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/courses/:id/edit",
   checkAuthenticated,
@@ -224,6 +351,31 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/courses:
+ *   get:
+ *     summary: Get all courses
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of courses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 courses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 user:
+ *                   type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/courses",
   checkAuthenticated,
@@ -263,6 +415,42 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/courses:
+ *   post:
+ *     summary: Create new course
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               course_name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               start_date:
+ *                 type: string
+ *                 format: date
+ *               end_date:
+ *                 type: string
+ *                 format: date
+ *               tuition_fee:
+ *                 type: number
+ *               course_image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Course created successfully
+ *       500:
+ *         description: Creation error
+ */
 router.post(
   "/courses",
   checkAuthenticated,
@@ -315,6 +503,51 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/courses/{id}:
+ *   post:
+ *     summary: Update course by ID
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Course ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               course_name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               start_date:
+ *                 type: string
+ *                 format: date
+ *               end_date:
+ *                 type: string
+ *                 format: date
+ *               tuition_fee:
+ *                 type: number
+ *               course_image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Course updated successfully
+ *       404:
+ *         description: Course not found
+ *       500:
+ *         description: Update error
+ */
 router.post(
   "/courses/:id",
   checkAuthenticated,
@@ -396,6 +629,27 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/courses/{id}:
+ *   delete:
+ *     summary: Delete course by ID (with image cleanup)
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Course ID
+ *     responses:
+ *       200:
+ *         description: Course deleted successfully
+ *       500:
+ *         description: Deletion error
+ */
 router.delete(
   "/courses/:id",
   checkAuthenticated,
@@ -435,6 +689,33 @@ router.delete(
   }
 );
 
+/**
+ * @swagger
+ * /api/available-courses:
+ *   get:
+ *     summary: Get available courses for enrollment
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of available courses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 courses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 student:
+ *                   type: object
+ *                 user:
+ *                   type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/available-courses",
   checkAuthenticated,
@@ -491,6 +772,33 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/enroll-course:
+ *   post:
+ *     summary: Enroll in a course
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               class_id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Enrollment successful
+ *       400:
+ *         description: Invalid request or already enrolled
+ *       404:
+ *         description: Class not found
+ *       500:
+ *         description: Enrollment error
+ */
 router.post(
   "/enroll-course",
   checkAuthenticated,
@@ -583,6 +891,31 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/my-courses:
+ *   get:
+ *     summary: Get user's enrolled courses
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user's courses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                 courses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get("/my-courses", checkAuthenticated, async (req, res) => {
   try {
     let query;

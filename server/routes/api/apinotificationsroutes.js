@@ -11,6 +11,36 @@ const {
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/notifications:
+ *   post:
+ *     summary: Send a notification (Admin/Teacher only)
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - message
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               message:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Notification sent successfully
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/notifications",
   checkAuthenticated,
@@ -40,7 +70,29 @@ router.post(
   }
 );
 
-
+/**
+ * @swagger
+ * /api/notifications:
+ *   get:
+ *     summary: Get notifications
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of notifications
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 notifications:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get("/notifications", checkAuthenticated, async (req, res) => {
   try {
     let query;
@@ -92,6 +144,27 @@ router.get("/notifications", checkAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/notifications/{id}/read:
+ *   post:
+ *     summary: Mark notification as read
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Notification ID
+ *     responses:
+ *       200:
+ *         description: Notification marked as read
+ *       500:
+ *         description: Server error
+ */
 router.post("/notifications/:id/read", checkAuthenticated, async (req, res) => {
   try {
     const query = `
@@ -108,6 +181,27 @@ router.post("/notifications/:id/read", checkAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/notifications/{id}:
+ *   delete:
+ *     summary: Delete a notification
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Notification ID
+ *     responses:
+ *       200:
+ *         description: Notification deleted
+ *       500:
+ *         description: Server error
+ */
 router.delete("/notifications/:id", checkAuthenticated, async (req, res) => {
   try {
     await executeQuery("DELETE FROM notifications WHERE id = ?", [

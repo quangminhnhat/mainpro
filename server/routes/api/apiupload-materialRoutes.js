@@ -15,6 +15,32 @@ const router = express.Router();
 
 
 
+/**
+ * @swagger
+ * /api/upload-material:
+ *   post:
+ *     summary: Upload material
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               course_id:
+ *                 type: string
+ *               material:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Material uploaded successfully
+ *       500:
+ *         description: Upload error
+ */
 router.post(
   "/upload-material",
   checkAuthenticated,
@@ -51,7 +77,47 @@ router.post(
   }
 );
 
-
+/**
+ * @swagger
+ * /api/upload-material:
+ *   post:
+ *     summary: Upload material
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               course_id:
+ *                 type: string
+ *                 description: Course ID
+ *               material:
+ *                 type: string
+ *                 format: binary
+ *                 description: Material file
+ *     responses:
+ *       200:
+ *         description: Material uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Bad request - missing course_id or file
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *       500:
+ *         description: Database insert error
+ */
 router.post(
   "/upload-material",
   checkAuthenticated,

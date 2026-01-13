@@ -31,6 +31,29 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Get exam list
+/**
+ * @swagger
+ * /api/exams:
+ *   get:
+ *     summary: Get list of exams
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of exams
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 exams:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get('/exams', checkAuthenticated, async (req, res) => {
   try {
     let query = '';
@@ -129,6 +152,25 @@ router.get('/exams', checkAuthenticated, async (req, res) => {
 });
 
 // Get new exam form data
+/**
+ * @swagger
+ * /api/exams/new:
+ *   get:
+ *     summary: Get data for new exam form
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Form data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ */
 router.get('/exams/new', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   res.json({
     user: req.user
@@ -136,6 +178,37 @@ router.get('/exams/new', checkAuthenticated, authenticateRole(['teacher']), asyn
 });
 
 // Create new exam
+/**
+ * @swagger
+ * /api/exam/new:
+ *   post:
+ *     summary: Create new exam
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               exam_title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               duration_minutes:
+ *                 type: integer
+ *               total_marks:
+ *                 type: integer
+ *               passing_marks:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Exam created successfully
+ *       500:
+ *         description: Creation error
+ */
 router.post('/exam/new', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { exam_title, description, duration_minutes, total_marks, passing_marks } = req.body;
@@ -172,6 +245,36 @@ router.post('/exam/new', checkAuthenticated, authenticateRole(['teacher']), asyn
 });
 
 // Get new question form data
+/**
+ * @swagger
+ * /api/exams/{examId}/questions/new:
+ *   get:
+ *     summary: Get data for new question form
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Exam ID
+ *     responses:
+ *       200:
+ *         description: Form data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Exam not found
+ */
 router.get('/exams/:examId/questions/new', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { examId } = req.params;
@@ -204,6 +307,38 @@ router.get('/exams/:examId/questions/new', checkAuthenticated, authenticateRole(
 });
 
 // Get exam edit data
+/**
+ * @swagger
+ * /api/exams/{examId}/edit:
+ *   get:
+ *     summary: Get exam edit form data
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Exam ID
+ *     responses:
+ *       200:
+ *         description: Exam edit data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 exam:
+ *                   type: object
+ *                 user:
+ *                   type: object
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Exam not found
+ */
 router.get('/exams/:examId/edit', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { examId } = req.params;
@@ -248,6 +383,46 @@ router.get('/exams/:examId/edit', checkAuthenticated, authenticateRole(['teacher
 });
 
 // Update exam
+/**
+ * @swagger
+ * /api/exams/{examId}:
+ *   put:
+ *     summary: Update exam
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Exam ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               exam_title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               duration_minutes:
+ *                 type: integer
+ *               total_marks:
+ *                 type: integer
+ *               passing_marks:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Exam updated successfully
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Exam not found
+ */
 router.put('/exams/:examId', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { examId } = req.params;
@@ -297,6 +472,44 @@ router.put('/exams/:examId', checkAuthenticated, authenticateRole(['teacher']), 
 });
 
 // Get question edit data
+/**
+ * @swagger
+ * /api/questions/{questionId}/edit:
+ *   get:
+ *     summary: Get question edit form data
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Question ID
+ *     responses:
+ *       200:
+ *         description: Question edit data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 question:
+ *                   type: object
+ *                 media:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 options:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Question not found
+ */
 router.get('/questions/:questionId/edit', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { questionId } = req.params;
@@ -356,6 +569,29 @@ router.get('/questions/:questionId/edit', checkAuthenticated, authenticateRole([
 
 // Update question
 // Delete question media
+/**
+ * @swagger
+ * /api/questions/media/{mediaId}:
+ *   delete:
+ *     summary: Delete question media
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: mediaId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Media ID
+ *     responses:
+ *       200:
+ *         description: Media deleted successfully
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Media not found
+ */
 router.delete('/questions/media/:mediaId', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
     try {
         const { mediaId } = req.params;
@@ -414,6 +650,49 @@ router.delete('/questions/media/:mediaId', checkAuthenticated, authenticateRole(
     }
 });
 
+/**
+ * @swagger
+ * /api/questions/{questionId}:
+ *   put:
+ *     summary: Update question
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Question ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               question_text:
+ *                 type: string
+ *               points:
+ *                 type: integer
+ *               difficulty:
+ *                 type: string
+ *               type_id:
+ *                 type: integer
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Question updated successfully
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Question not found
+ */
 router.put('/questions/:questionId', checkAuthenticated, authenticateRole(['teacher']), upload.array('media'), async (req, res) => {
   try {
     const { questionId } = req.params;
@@ -486,6 +765,29 @@ router.put('/questions/:questionId', checkAuthenticated, authenticateRole(['teac
 });
 
 // Delete question
+/**
+ * @swagger
+ * /api/questions/{questionId}:
+ *   delete:
+ *     summary: Delete question
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Question ID
+ *     responses:
+ *       200:
+ *         description: Question deleted successfully
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Question not found
+ */
 router.delete('/questions/:questionId', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { questionId } = req.params;
@@ -540,6 +842,29 @@ router.delete('/questions/:questionId', checkAuthenticated, authenticateRole(['t
 });
 
 // Delete exam
+/**
+ * @swagger
+ * /api/exams/{examId}:
+ *   delete:
+ *     summary: Delete exam
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Exam ID
+ *     responses:
+ *       200:
+ *         description: Exam deleted successfully
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Exam not found
+ */
 router.delete('/exams/:examId', checkAuthenticated, authenticateRole(['admin', 'teacher']), async (req, res) => {
   try {
     const { examId } = req.params;
@@ -636,6 +961,49 @@ router.delete('/exams/:examId', checkAuthenticated, authenticateRole(['admin', '
 });
 
 // Add question to exam or question bank
+/**
+ * @swagger
+ * /api/{examId}/questions/add:
+ *   post:
+ *     summary: Add question to exam
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Exam ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               question_text:
+ *                 type: string
+ *               type_id:
+ *                 type: string
+ *               points:
+ *                 type: integer
+ *               difficulty:
+ *                 type: string
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Question added successfully
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Exam not found
+ */
 router.post('/:examId/questions/add', checkAuthenticated, authenticateRole(['teacher']), upload.array('media'), async (req, res) => {
   try {
     const { question_text, type_id, points, difficulty } = req.body;
@@ -712,6 +1080,38 @@ router.post('/:examId/questions/add', checkAuthenticated, authenticateRole(['tea
 });
 
 // Get exam questions
+/**
+ * @swagger
+ * /api/{examId}/questions:
+ *   get:
+ *     summary: Get exam questions
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Exam ID
+ *     responses:
+ *       200:
+ *         description: List of exam questions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 questions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Exam not found
+ */
 router.get('/:examId/questions', checkAuthenticated, async (req, res) => {
   try {
     const { examId } = req.params;
@@ -742,6 +1142,40 @@ router.get('/:examId/questions', checkAuthenticated, async (req, res) => {
 });
 
 // Get exam assignments data
+/**
+ * @swagger
+ * /api/exams/{examId}/assign:
+ *   get:
+ *     summary: Get exam assignment form data
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Exam ID
+ *     responses:
+ *       200:
+ *         description: Assignment form data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 exam:
+ *                   type: object
+ *                 classes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Exam not found
+ */
 router.get('/exams/:examId/assign', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { examId } = req.params;
@@ -802,6 +1236,48 @@ router.get('/exams/:examId/assign', checkAuthenticated, authenticateRole(['teach
 });
 
 // Assign exam to class
+/**
+ * @swagger
+ * /api/exams/{examId}/assign:
+ *   post:
+ *     summary: Assign exam to class
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Exam ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               class_id:
+ *                 type: integer
+ *               open_at:
+ *                 type: string
+ *                 format: date-time
+ *               close_at:
+ *                 type: string
+ *                 format: date-time
+ *               max_attempts:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Exam assigned successfully
+ *       400:
+ *         description: Invalid input
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Exam or class not found
+ */
 router.post('/exams/:examId/assign', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { examId } = req.params;
@@ -855,6 +1331,40 @@ router.post('/exams/:examId/assign', checkAuthenticated, authenticateRole(['teac
 });
 
 // Get exam assignment scores data
+/**
+ * @swagger
+ * /api/exams/assignments/{assignmentId}/scores:
+ *   get:
+ *     summary: Get exam assignment scores
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assignmentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Assignment ID
+ *     responses:
+ *       200:
+ *         description: Assignment scores data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 assignment:
+ *                   type: object
+ *                 attempts:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Assignment not found
+ */
 router.get('/exams/assignments/:assignmentId/scores', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
     try {
         const { assignmentId } = req.params;
@@ -935,6 +1445,40 @@ router.get('/exams/assignments/:assignmentId/scores', checkAuthenticated, authen
 });
 
 // Get grading data for a specific attempt
+/**
+ * @swagger
+ * /api/exams/attempts/{attemptId}/grade:
+ *   get:
+ *     summary: Get grading data for exam attempt
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: attemptId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Attempt ID
+ *     responses:
+ *       200:
+ *         description: Grading data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 attempt:
+ *                   type: object
+ *                 responses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Attempt not found
+ */
 router.get('/exams/attempts/:attemptId/grade', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { attemptId } = req.params;
@@ -1014,6 +1558,40 @@ router.get('/exams/attempts/:attemptId/grade', checkAuthenticated, authenticateR
 });
 
 // Teacher: submit manual grades for an attempt
+/**
+ * @swagger
+ * /api/exams/attempts/{attemptId}/grade:
+ *   post:
+ *     summary: Submit grades for exam attempt
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: attemptId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Attempt ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               scores:
+ *                 type: object
+ *               comments:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Grades submitted successfully
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Attempt not found
+ */
 router.post('/exams/attempts/:attemptId/grade', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { attemptId } = req.params;
@@ -1061,6 +1639,29 @@ router.post('/exams/attempts/:attemptId/grade', checkAuthenticated, authenticate
 });
 
 // Delete exam assignment
+/**
+ * @swagger
+ * /api/exams/assignments/{assignmentId}:
+ *   delete:
+ *     summary: Delete exam assignment
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assignmentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Assignment ID
+ *     responses:
+ *       200:
+ *         description: Assignment deleted successfully
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Assignment not found
+ */
 router.delete('/exams/assignments/:assignmentId', checkAuthenticated, authenticateRole(['teacher']), async (req, res) => {
   try {
     const { assignmentId } = req.params;
@@ -1094,6 +1695,42 @@ router.delete('/exams/assignments/:assignmentId', checkAuthenticated, authentica
 });
 
 // Start exam attempt
+/**
+ * @swagger
+ * /api/{assignmentId}/start:
+ *   post:
+ *     summary: Start exam attempt
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assignmentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Assignment ID
+ *     responses:
+ *       200:
+ *         description: Exam attempt started
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 attemptId:
+ *                   type: integer
+ *                 questions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Cannot start exam (time constraints, max attempts reached)
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Assignment not found
+ */
 router.post('/:assignmentId/start', checkAuthenticated, authenticateRole(['student']), async (req, res) => {
   try {
     const { assignmentId } = req.params;
@@ -1258,6 +1895,49 @@ const examResponseMediaStorage = multer.diskStorage({
 const uploadExamResponse = multer({ storage: examResponseMediaStorage });
 
 // Process an exam submission
+/**
+ * @swagger
+ * /api/exams/submit/{attemptId}:
+ *   post:
+ *     summary: Submit exam attempt
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: attemptId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Attempt ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               responses:
+ *                 type: string
+ *                 description: JSON string of question responses
+ *               isAutoSubmit:
+ *                 type: string
+ *                 enum: [true, false]
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Exam submitted successfully
+ *       400:
+ *         description: Invalid submission
+ *       403:
+ *         description: Permission denied
+ *       404:
+ *         description: Attempt not found
+ */
 router.post('/exams/submit/:attemptId', checkAuthenticated, authenticateRole(['student']), uploadExamResponse.array('files'), async (req, res) => {
     try {
         const attemptId = req.params.attemptId;
@@ -1361,6 +2041,50 @@ router.post('/exams/submit/:attemptId', checkAuthenticated, authenticateRole(['s
 
 
 // New route to start taking an exam
+/**
+ * @swagger
+ * /api/exams/{assignmentId}/take:
+ *   get:
+ *     summary: Start or resume an exam attempt
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assignmentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Assignment ID
+ *     responses:
+ *       200:
+ *         description: Exam data for taking the exam
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                 exam:
+ *                   type: object
+ *                 questions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 attemptId:
+ *                   type: integer
+ *                 responses:
+ *                   type: object
+ *                 duration:
+ *                   type: integer
+ *       400:
+ *         description: Exam not open or closed
+ *       403:
+ *         description: Permission denied or max attempts reached
+ *       404:
+ *         description: Exam or assignment not found
+ */
 router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['student']), async (req, res) => {
     try {
         const { assignmentId } = req.params;
@@ -1623,4 +2347,3 @@ router.get('/exams/:assignmentId/take', checkAuthenticated, authenticateRole(['s
 
 
 module.exports = router;
-

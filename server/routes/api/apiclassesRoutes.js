@@ -6,6 +6,29 @@ const executeQuery = require("../../middleware/executeQuery");
 const { checkAuthenticated } = require("../../middleware/auth");
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/classes:
+ *   get:
+ *     summary: Get all classes
+ *     tags: [Classes]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of classes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 classes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/classes",
   checkAuthenticated,
@@ -52,6 +75,50 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/classes/{id}:
+ *   post:
+ *     summary: Update class by ID
+ *     tags: [Classes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Class ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               class_name:
+ *                 type: string
+ *               course_id:
+ *                 type: integer
+ *               teacher_id:
+ *                 type: integer
+ *               start_time:
+ *                 type: string
+ *               end_time:
+ *                 type: string
+ *               weekly_days:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *     responses:
+ *       200:
+ *         description: Class updated successfully
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Update error
+ */
 router.post(
   "/classes/:id",
   checkAuthenticated,
@@ -115,6 +182,44 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/classes/{id}/edit:
+ *   get:
+ *     summary: Get class edit form data
+ *     tags: [Classes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Class ID
+ *     responses:
+ *       200:
+ *         description: Class edit data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 classItem:
+ *                   type: object
+ *                 courses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 teachers:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       404:
+ *         description: Class not found
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/classes/:id/edit",
   checkAuthenticated,
@@ -179,6 +284,31 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/classes/{id}:
+ *   delete:
+ *     summary: Delete class by ID
+ *     tags: [Classes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Class ID
+ *     responses:
+ *       200:
+ *         description: Class deleted successfully
+ *       400:
+ *         description: Cannot delete class with enrollments
+ *       404:
+ *         description: Class not found
+ *       500:
+ *         description: Deletion error
+ */
 router.delete(
   "/classes/:id",
   checkAuthenticated,
@@ -241,6 +371,47 @@ router.delete(
   }
 );
 
+/**
+ * @swagger
+ * /api/classes:
+ *   post:
+ *     summary: Create new class
+ *     tags: [Classes]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               class_name:
+ *                 type: string
+ *               course_id:
+ *                 type: integer
+ *               teacher_id:
+ *                 type: integer
+ *               start_time:
+ *                 type: string
+ *               end_time:
+ *                 type: string
+ *               weekly_days:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *     responses:
+ *       200:
+ *         description: Class created successfully
+ *       400:
+ *         description: Missing required fields
+ *       404:
+ *         description: Course not found
+ *       409:
+ *         description: Schedule conflict
+ *       500:
+ *         description: Creation error
+ */
 router.post(
   "/classes",
   checkAuthenticated,
@@ -346,6 +517,33 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/classes/new:
+ *   get:
+ *     summary: Get data for new class form
+ *     tags: [Classes]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Form data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 courses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 teachers:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/classes/new",
   checkAuthenticated,
@@ -384,6 +582,40 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/classes/{id}/students:
+ *   get:
+ *     summary: Get students enrolled in a class
+ *     tags: [Classes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Class ID
+ *     responses:
+ *       200:
+ *         description: List of students
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 classInfo:
+ *                   type: object
+ *                 students:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       404:
+ *         description: Class not found
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/classes/:id/students",
   checkAuthenticated,

@@ -6,6 +6,29 @@ const executeQuery = require("../../middleware/executeQuery");
 const { checkAuthenticated } = require("../../middleware/auth");
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/enrollments:
+ *   get:
+ *     summary: Get all enrollments
+ *     tags: [Enrollments]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of enrollments
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 enrollments:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/enrollments",
   checkAuthenticated,
@@ -38,6 +61,29 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/enrollments/{id}:
+ *   delete:
+ *     summary: Delete enrollment by ID
+ *     tags: [Enrollments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Enrollment ID
+ *     responses:
+ *       200:
+ *         description: Enrollment deleted successfully
+ *       404:
+ *         description: Enrollment not found
+ *       500:
+ *         description: Deletion error
+ */
 router.delete(
   "/enrollments/:id",
   checkAuthenticated,
@@ -104,6 +150,27 @@ router.delete(
   }
 );
 
+/**
+ * @swagger
+ * /api/enrollments/{id}/toggle-payment:
+ *   post:
+ *     summary: Toggle payment status for enrollment
+ *     tags: [Enrollments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Enrollment ID
+ *     responses:
+ *       200:
+ *         description: Payment status toggled successfully
+ *       500:
+ *         description: Update error
+ */
 router.post(
   "/enrollments/:id/toggle-payment",
   checkAuthenticated,
@@ -142,6 +209,44 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/enrollments/{id}/edit:
+ *   get:
+ *     summary: Get enrollment edit form data
+ *     tags: [Enrollments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Enrollment ID
+ *     responses:
+ *       200:
+ *         description: Edit form data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 enrollment:
+ *                   type: object
+ *                 students:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 classes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       404:
+ *         description: Enrollment not found
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/enrollments/:id/edit",
   checkAuthenticated,
@@ -208,6 +313,33 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/enrollments/new:
+ *   get:
+ *     summary: Get data for new enrollment form
+ *     tags: [Enrollments]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Form data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 students:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 classes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/enrollments/new",
   checkAuthenticated,
@@ -305,6 +437,31 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/enrollments:
+ *   post:
+ *     summary: Create new enrollment
+ *     tags: [Enrollments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               student_id:
+ *                 type: integer
+ *               class_id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Enrollment created successfully
+ *       500:
+ *         description: Creation error
+ */
 router.post(
   "/enrollments",
   checkAuthenticated,
@@ -413,6 +570,40 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/enrollments/{id}:
+ *   put:
+ *     summary: Update enrollment
+ *     tags: [Enrollments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Enrollment ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               class_id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Enrollment updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Enrollment or class not found
+ *       500:
+ *         description: Update error
+ */
 router.put(
   "/enrollments/:id",
   checkAuthenticated,

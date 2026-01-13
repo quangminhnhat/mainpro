@@ -27,6 +27,32 @@ async function columnExists(tableName, columnName) {
 
 
 
+/**
+ * @swagger
+ * /api/schedule/new:
+ *   get:
+ *     summary: Get data for creating a new schedule
+ *     tags: [Schedules]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Form data for new schedule
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 classes:
+ *                   type: array
+ *                 user:
+ *                   type: object
+ *                 currentDate:
+ *                   type: string
+ *                   format: date
+ *       500:
+ *         description: Server error
+ */
 router.get(
   "/schedule/new",
   checkAuthenticated,
@@ -92,6 +118,29 @@ router.get(
 
 
 
+/**
+ * @swagger
+ * /api/schedules/{id}:
+ *   delete:
+ *     summary: Delete a schedule
+ *     tags: [Schedules]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Schedule ID
+ *     responses:
+ *       200:
+ *         description: Schedule deleted successfully
+ *       404:
+ *         description: Schedule not found
+ *       500:
+ *         description: Server error
+ */
 router.delete(
   "/schedules/:id",
   checkAuthenticated,
@@ -120,8 +169,29 @@ router.delete(
   }
 );
 
-
-
+/**
+ * @swagger
+ * /api/schedules:
+ *   get:
+ *     summary: Get all schedules
+ *     tags: [Schedules]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of schedules
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 schedules:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/schedules",
   checkAuthenticated,
@@ -155,6 +225,50 @@ router.get(
 
 
 
+/**
+ * @swagger
+ * /api/schedules:
+ *   post:
+ *     summary: Create a new schedule
+ *     tags: [Schedules]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - class_id
+ *               - schedule_date
+ *               - start_time
+ *               - end_time
+ *               - day_of_week
+ *             properties:
+ *               class_id:
+ *                 type: integer
+ *               schedule_date:
+ *                 type: string
+ *                 format: date
+ *               start_time:
+ *                 type: string
+ *                 format: time
+ *               end_time:
+ *                 type: string
+ *                 format: time
+ *               day_of_week:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Schedule created successfully
+ *       400:
+ *         description: Missing required fields
+ *       409:
+ *         description: Schedule conflict detected
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/schedules",
   checkAuthenticated,
@@ -260,6 +374,29 @@ router.post(
 );
 
 
+/**
+ * @swagger
+ * /api/schedules/{id}/edit:
+ *   get:
+ *     summary: Get data for editing a schedule
+ *     tags: [Schedules]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Schedule ID
+ *     responses:
+ *       200:
+ *         description: Schedule edit data retrieved
+ *       404:
+ *         description: Schedule not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/schedules/:id/edit", checkAuthenticated, authenticateRole("admin"), async (req, res) => {
   try {
     const scheduleId = req.params.id;
@@ -355,6 +492,29 @@ router.get("/schedules/:id/edit", checkAuthenticated, authenticateRole("admin"),
 
 
 //you gonna need to redo this part
+/**
+ * @swagger
+ * /api/schedule:
+ *   get:
+ *     summary: Get weekly schedule for student/teacher
+ *     tags: [Schedules]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: weekStart
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date of the week (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Weekly schedule data
+ *       403:
+ *         description: Unauthorized role
+ *       500:
+ *         description: Server error
+ */
 router.get("/schedule", checkAuthenticated, (req, res) => {
     // 1. Week calculation
     let monday;
@@ -563,6 +723,57 @@ router.get("/schedule", checkAuthenticated, (req, res) => {
 
 
 
+  /**
+   * @swagger
+   * /api/schedules/{id}:
+   *   post:
+   *     summary: Update a schedule
+   *     tags: [Schedules]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: Schedule ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - class_id
+   *               - schedule_date
+   *               - start_time
+   *               - end_time
+   *               - day_of_week
+   *             properties:
+   *               class_id:
+   *                 type: integer
+   *               schedule_date:
+   *                 type: string
+   *                 format: date
+   *               start_time:
+   *                 type: string
+   *                 format: time
+   *               end_time:
+   *                 type: string
+   *                 format: time
+   *               day_of_week:
+   *                 type: integer
+   *     responses:
+   *       200:
+   *         description: Schedule updated successfully
+   *       400:
+   *         description: Missing required fields
+   *       404:
+   *         description: Class not found
+   *       500:
+   *         description: Server error
+   */
   router.post(
     "/schedules/:id",
     checkAuthenticated,
@@ -656,6 +867,20 @@ router.get("/schedule", checkAuthenticated, (req, res) => {
   );
 
 
+  /**
+   * @swagger
+   * /api/schedules/new:
+   *   get:
+   *     summary: Get data for new schedule form (Alternative)
+   *     tags: [Schedules]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Form data for new schedule
+   *       500:
+   *         description: Server error
+   */
   router.get(
     "/schedules/new",
     checkAuthenticated,
@@ -694,6 +919,29 @@ router.get("/schedule", checkAuthenticated, (req, res) => {
     }
   );
 
+  /**
+   * @swagger
+   * /api/schedules/{id}:
+   *   delete:
+   *     summary: Delete a schedule (Duplicate)
+   *     tags: [Schedules]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: Schedule ID
+   *     responses:
+   *       200:
+   *         description: Schedule deleted successfully
+   *       404:
+   *         description: Schedule not found
+   *       500:
+   *         description: Server error
+   */
   router.delete(
     "/schedules/:id",
     checkAuthenticated,

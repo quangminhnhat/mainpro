@@ -24,6 +24,29 @@ const validateSchedule = require("../../middleware/validateSchedule");
 const router = express.Router();
 
 // Render request list page
+/**
+ * @swagger
+ * /api/requests:
+ *   get:
+ *     summary: Get requests
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 requests:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/requests",
   checkAuthenticated,
@@ -80,6 +103,29 @@ router.get(
 );
 
 // Render new request form
+/**
+ * @swagger
+ * /api/requests/new:
+ *   get:
+ *     summary: Get data for new request form
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Form data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 requestTypes:
+ *                   type: array
+ *                 classes:
+ *                   type: array
+ *       500:
+ *         description: Server error
+ */
 router.get(
   "/requests/new",
   checkAuthenticated,
@@ -129,6 +175,29 @@ router.get(
 );
 
 // Render edit request form
+/**
+ * @swagger
+ * /api/requests/{requestId}/edit:
+ *   get:
+ *     summary: Get data for edit request form
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Request ID
+ *     responses:
+ *       200:
+ *         description: Request details retrieved
+ *       404:
+ *         description: Request not found
+ *       500:
+ *         description: Server error
+ */
 router.get(
   "/requests/:requestId/edit",
   checkAuthenticated,
@@ -193,6 +262,38 @@ router.get(
 
 // Create a new request
 
+/**
+ * @swagger
+ * /api/requestAdd:
+ *   post:
+ *     summary: Create a new request
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - requestType
+ *               - details
+ *             properties:
+ *               requestType:
+ *                 type: string
+ *               details:
+ *                 type: string
+ *               classId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Request submitted successfully
+ *       400:
+ *         description: Invalid request type
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/requestAdd",
   checkAuthenticated,
@@ -263,6 +364,31 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/requestDelete/{requestId}:
+ *   delete:
+ *     summary: Delete a pending request
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Request ID
+ *     responses:
+ *       200:
+ *         description: Request deleted successfully
+ *       400:
+ *         description: Only pending requests can be deleted
+ *       404:
+ *         description: Request not found
+ *       500:
+ *         description: Server error
+ */
 router.delete(
   "/requestDelete/:requestId",
   checkAuthenticated,
@@ -324,6 +450,42 @@ router.delete(
   }
 );
 
+/**
+ * @swagger
+ * /api/requestEdit/{requestId}:
+ *   put:
+ *     summary: Edit a pending request
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Request ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               details:
+ *                 type: string
+ *               classId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Request updated successfully
+ *       400:
+ *         description: Only pending requests can be edited
+ *       404:
+ *         description: Request not found
+ *       500:
+ *         description: Server error
+ */
 router.put(
   "/requestEdit/:requestId",
   checkAuthenticated,
@@ -414,6 +576,31 @@ router.put(
 );
 
 // Toggle request status (admin only)
+/**
+ * @swagger
+ * /api/requestToggleStatus/{requestId}:
+ *   put:
+ *     summary: Toggle request status (Approve/Reject)
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Request ID
+ *     responses:
+ *       200:
+ *         description: Request status updated
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Request not found
+ *       500:
+ *         description: Server error
+ */
 router.put(
   "/requestToggleStatus/:requestId",
   checkAuthenticated,

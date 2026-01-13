@@ -25,6 +25,31 @@ const profilePicStorage = multer.diskStorage({
 });
 const profilePicUpload = multer({ storage: profilePicStorage });
 
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get all users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 user:
+ *                   type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/users",
   checkAuthenticated,
@@ -46,6 +71,29 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/users/{id}/edit:
+ *   get:
+ *     summary: Get user details for editing
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User details retrieved
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/users/:id/edit", checkAuthenticated, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -76,6 +124,54 @@ router.get("/users/:id/edit", checkAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   post:
+ *     summary: Update user details
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [student, teacher, admin]
+ *               full_name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               salary:
+ *                 type: number
+ *               address:
+ *                 type: string
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *               profile_pic:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/users/:id",
   checkAuthenticated,
@@ -233,6 +329,31 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       400:
+ *         description: Cannot delete user (dependencies or self-deletion)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 router.delete(
   "/users/:id",
   checkAuthenticated,
@@ -304,6 +425,31 @@ router.delete(
   }
 );
 
+/**
+ * @swagger
+ * /api/profile:
+ *   get:
+ *     summary: Get current user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                 details:
+ *                   type: object
+ *       404:
+ *         description: Profile not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/profile", checkAuthenticated, async (req, res) => {
   try {
     const userId = req.user.id;

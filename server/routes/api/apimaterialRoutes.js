@@ -11,6 +11,32 @@ const {
   checkAuthenticated,
 } = require("../../middleware/auth");
 
+/**
+ * @swagger
+ * /api/upload-material:
+ *   post:
+ *     summary: Upload material
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               course_id:
+ *                 type: string
+ *               material:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Material uploaded successfully
+ *       500:
+ *         description: Upload error
+ */
 router.post(
   "/upload-material",
   checkAuthenticated,

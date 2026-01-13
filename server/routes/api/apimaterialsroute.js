@@ -12,6 +12,29 @@ const {
 const router = express.Router();
 
 
+/**
+ * @swagger
+ * /api/materials:
+ *   get:
+ *     summary: Get all materials
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of materials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 materials:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/materials",
   checkAuthenticated,
@@ -32,7 +55,42 @@ router.get(
   }
 );
 
-
+/**
+ * @swagger
+ * /api/materials/{id}/edit:
+ *   get:
+ *     summary: Get material for editing
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Material ID
+ *     responses:
+ *       200:
+ *         description: Material data for editing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 material:
+ *                   type: object
+ *                 courses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *       404:
+ *         description: Material not found
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/materials/:id/edit",
   checkAuthenticated,
@@ -77,6 +135,45 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/materials/{id}:
+ *   post:
+ *     summary: Update material
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Material ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               course_id:
+ *                 type: integer
+ *                 description: Course ID
+ *               material:
+ *                 type: string
+ *                 format: binary
+ *                 description: New material file (optional)
+ *     responses:
+ *       200:
+ *         description: Material updated successfully
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *       404:
+ *         description: Material not found
+ *       500:
+ *         description: Update error
+ */
 router.post(
   "/materials/:id",
   checkAuthenticated,
@@ -139,6 +236,31 @@ router.post(
 );
   
 
+/**
+ * @swagger
+ * /api/materials/{id}:
+ *   delete:
+ *     summary: Delete material
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Material ID
+ *     responses:
+ *       200:
+ *         description: Material deleted successfully
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *       404:
+ *         description: Material not found
+ *       500:
+ *         description: Delete error
+ */
 router.delete(
   "/materials/:id",
   checkAuthenticated,
@@ -177,6 +299,36 @@ router.delete(
   }
 );
 
+/**
+ * @swagger
+ * /api/upload:
+ *   get:
+ *     summary: Get courses for material upload
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of available courses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 courses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       course_name:
+ *                         type: string
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *       500:
+ *         description: Database error
+ */
 router.get(
   "/upload",
   authenticateRole(["admin", "teacher"]),

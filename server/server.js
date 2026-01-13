@@ -3,7 +3,6 @@ if (process.env.NODE_ENV !== "production") {
 }
 require("events").EventEmitter.defaultMaxListeners = 20;
 
-//lib import
 const express = require("express");
 const app = express();
 const path = require("path");
@@ -13,6 +12,8 @@ const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
 const methodOverride = require("method-override");
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 const { authenticateRole } = require("./middleware/roleAuth");
 const multer = require("multer");
 const fs = require("fs");
@@ -123,6 +124,41 @@ initalizePassport(
   }
 );
 
+// Swagger definition
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Your API',
+      version: '1.0.0',
+      description: 'API documentation for your application',
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000',
+        description: 'Development server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
+  },
+  apis: [path.join(__dirname, 'routes/api/*.js'), path.join(__dirname, 'server.js')], // Path to the API docs
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
 // Serve uploaded files statically
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -141,6 +177,9 @@ app.use(miscroutes);
 app.use(requestRoute);
 app.use(examRoutes);
 
+// Swagger UI
+app.use('/api', swaggerUi.serve);
+app.get('/api', swaggerUi.setup(swaggerSpec));
 
 //api routing
 app.use("/api", apiClassesRoutes);
@@ -156,7 +195,44 @@ app.use("/api", apiScheduleRoutes);
 app.use("/api", apiUploadMaterialRoutes);
 app.use("/api", apiUsersRoutes);
 
+
+
+// Test route
+app.get('/test', (req, res) => {
+  res.send('Test route works');
+});
+
+// Swagger JSON
+app.get('/swagger.json', (req, res) => {
+  res.json(swaggerSpec);
+});
+
 // API Login Route for Flutter App
+/**
+ * @swagger
+ * /api/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Login failed
+ *       500:
+ *         description: Internal server error
+ */
 app.post("/api/login", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) {
@@ -194,6 +270,20 @@ app.delete("/api/logout", (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /api/logout:
+ *   delete:
+ *     summary: Logout user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *       500:
+ *         description: Logout failed
+ */
 
 app.post(
   "/login",

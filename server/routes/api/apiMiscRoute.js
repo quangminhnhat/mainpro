@@ -27,6 +27,29 @@ const mapRole = {
   subject3: "admin",
 };
 
+/**
+ * @swagger
+ * /api/download/{id}:
+ *   get:
+ *     summary: Download material by ID
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Material ID
+ *     responses:
+ *       200:
+ *         description: File download
+ *       404:
+ *         description: Material not found
+ *       500:
+ *         description: Download error
+ */
 router.get("/download/:id", checkAuthenticated, async (req, res) => {
   try {
     const materialId = req.params.id;
@@ -44,6 +67,38 @@ router.get("/download/:id", checkAuthenticated, async (req, res) => {
 });
 
 
+/**
+ * @swagger
+ * /api/:
+ *   get:
+ *     summary: Get homepage courses
+ *     tags: [Misc]
+ *     responses:
+ *       200:
+ *         description: List of courses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                 courses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       title:
+ *                         type: string
+ *                       course_desc:
+ *                         type: string
+ *                       img:
+ *                         type: string
+ *                       link:
+ *                         type: string
+ */
 router.get("/", async (req, res) => {
   try {
     const query = `
@@ -66,10 +121,44 @@ router.get("/", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/school:
+ *   get:
+ *     summary: Get school info
+ *     tags: [Misc]
+ *     responses:
+ *       200:
+ *         description: School info
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ */
 router.get("/school", (req, res) => {
   res.json({ user: req.user });
 });
 
+/**
+ * @swagger
+ * /api/news:
+ *   get:
+ *     summary: Get news info
+ *     tags: [Misc]
+ *     responses:
+ *       200:
+ *         description: News info
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ */
 router.get("/news", (req, res) => {
   res.json({ user: req.user });
 });
@@ -78,6 +167,29 @@ router.get("/news", (req, res) => {
 
 
 
+/**
+ * @swagger
+ * /api/register:
+ *   get:
+ *     summary: Get registration info (Admin only)
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Registration info
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 router.get(
   "/register",
   checkAuthenticated,
@@ -89,6 +201,67 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /api/register:
+ *   post:
+ *     summary: Register a new user (Admin only)
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - Name
+ *               - fullName
+ *               - email
+ *               - birthday
+ *               - phone
+ *               - Address
+ *               - subject
+ *               - Password
+ *             properties:
+ *               Name:
+ *                 type: string
+ *                 description: Username
+ *               fullName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               birthday:
+ *                 type: string
+ *                 format: date
+ *               phone:
+ *                 type: string
+ *               Address:
+ *                 type: string
+ *               subject:
+ *                 type: string
+ *                 enum: [subject1, subject2, subject3]
+ *                 description: Role mapping (subject1=student, subject2=teacher, subject3=admin)
+ *               salary:
+ *                 type: number
+ *                 description: Required for teachers (subject2)
+ *               Password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Registration successful
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/register",
   checkAuthenticated,
@@ -262,4 +435,3 @@ router.post(
 
 
 module.exports = router;
-
