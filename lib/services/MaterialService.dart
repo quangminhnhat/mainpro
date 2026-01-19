@@ -56,7 +56,6 @@ class MaterialService {
         "course_id": courseId,
         "material": await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
       });
-      // Corrected route to match server's /api/upload-material
       final response = await _dio.post("/upload-material", data: formData);
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
@@ -69,12 +68,16 @@ class MaterialService {
     try {
       Map<String, dynamic> map = {"course_id": courseId};
       if (file != null) {
-        map["material"] = await MultipartFile.fromFile(file.path, filename: file.path.split('/').last);
+        map["material"] = await MultipartFile.fromFile(
+          file.path, 
+          filename: file.path.split(Platform.pathSeparator).last
+        );
       }
       FormData formData = FormData.fromMap(map);
       final response = await _dio.post("/materials/$id", data: formData);
       return response.statusCode == 200;
     } catch (e) {
+      print("Update material error: $e");
       return false;
     }
   }
